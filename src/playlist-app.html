@@ -1,0 +1,84 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="playlist-header.html">
+<link rel="import" href="playlist-home.html">
+<link rel="import" href="playlist-list.html">
+<link rel="import" href="playlist-list-item.html">
+<link rel="import" href="playlist-dm.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="playlist-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+
+      playlist-home {
+        margin-top: 50px;    
+      }
+    </style>
+
+    <playlist-dm id="data_manager"></playlist-dm>
+    <playlist-header
+      title="Playlist"
+      header-actions="[[headerActions]]"
+      on-add-button-tapped="initAddElementProcess"
+      on-load-button-tapped="requestLoadData"
+      on-save-button-tapped="requestSaveData">
+    </playlist-header>
+    <playlist-home>
+      <playlist-list
+        id="list"
+        slot="content">
+      </playlist-list>
+    </playlist-home>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class PlaylistApp extends Polymer.Element {
+      static get is() { return 'playlist-app'; }
+      static get properties() {
+        return {
+          headerActions: {
+            type: Array,
+            value: () => [ 'Add', 'Load', 'Save' ]
+          }
+        };
+      }
+
+      /**
+       * Use for one-time configuration of your component after local DOM is
+       * initialized.
+       */
+      ready() {
+        super.ready();
+        this.addEventListener('list-parsed', (data) => this.shadowRoot.querySelector('#list').readData(data))
+        this.addEventListener('data-saved', (responseData) => this.orderSaveItems(responseData.detail))
+      }
+
+      initAddElementProcess() {
+        this.shadowRoot.querySelector('#list').enableAddElementInput = true
+      }
+
+      requestLoadData() {
+        this.shadowRoot.querySelector('#data_manager').getApiData()
+      }
+
+      requestSaveData() {
+        const pendingData = this.shadowRoot.querySelector('#list').pendingToAdd
+        this.shadowRoot.querySelector('#data_manager').requestSaveDataOnApi(pendingData)
+      }
+
+      orderSaveItems(data) {
+        this.shadowRoot.querySelector('#list').renderSavedItems(data)
+      }
+    }
+
+    window.customElements.define(PlaylistApp.is, PlaylistApp);
+  </script>
+</dom-module>

@@ -1,0 +1,56 @@
+
+
+<dom-module id="playlist-home">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+
+      main {
+        max-width: 768px;
+        margin: 0 auto;
+        padding: 20px 0;
+      }
+
+      @media screen and (max-width: 768px) {
+        main {
+          max-width: none;
+          padding: 20px 20px;
+        }    
+      }
+    </style>
+
+    <main>
+      <slot name="content"></slot>
+    </main>
+  </template>
+
+  <script>
+    /**
+     * `playlist-home` Home of app
+     *
+     * @summary Specific home.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class PlaylistHome extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return "playlist-home";
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {};
+      }
+    }
+
+    window.customElements.define(PlaylistHome.is, PlaylistHome);
+  </script>
+</dom-module>

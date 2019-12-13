@@ -1,0 +1,90 @@
+<dom-module id="playlist-header">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        width: 100%;
+        position: fixed;
+        top: 0;
+      }
+
+      header {
+        height: 50px;
+        background-color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 400;
+      }
+
+      .hero {
+        height: 40px;
+      }
+    </style>
+
+    <header>
+      <div>
+        <img class="hero" src="./assets/images.png" alt="">
+      </div>
+      <div>
+        <h1 class="title">[[title]]</h1>
+      </div>
+      <div>
+        <dom-repeat items="[[headerActions]]">
+          <template>
+            <button on-click="dispatchSpecificAction">[[item]]</button>
+          </template>
+        </dom-repeat>
+      </div>
+    </header>
+  </template>
+
+  <script>
+    /**
+     * `playlist-header` header of app
+     *
+     * @summary Generic header.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class PlaylistHeader extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return "playlist-header";
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {
+          title: {
+            type: String,
+            value: 'Skeleton'
+          },
+          headerActions: Array
+        };
+      }
+
+      dispatchSpecificAction(e) {
+        const action = e.model.__data.item.toLowerCase()
+        this.dispatchEvent(new CustomEvent(`${action}-button-tapped`, {
+          bubbles: true,
+          composed: true
+        }));
+        
+      }
+    }
+
+    window.customElements.define(PlaylistHeader.is, PlaylistHeader);
+  </script>
+</dom-module>

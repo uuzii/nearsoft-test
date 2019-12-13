@@ -1,0 +1,126 @@
+
+<dom-module id="playlist-list-item">
+  <template>
+    <style include="shared-styles">
+      :host {
+        margin: 10px 0;
+      }
+
+      .strikethrough {
+        text-decoration: line-through;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+      }
+
+      .even {
+        background-color: aliceblue;
+      }
+
+      .odd {
+        background-color: white;
+      }
+    </style>
+
+    <div class$="row [[itemClass]]">
+      <div>
+        <span>[[itemIndex]]</span>
+        <input type="checkbox" checked$="[[itemInfo.checked]]" id="checkbox">
+        <span class$="[[validateStrikethrough(itemInfo.checked)]]" id="name">[[itemInfo.name]]</span>
+      </div>
+      <div>
+        <dom-repeat items="[[itemInfo.actions]]">
+          <template>
+            <button on-click="validateAction" data-index$="[[index]]">[[item]]</button>
+          </template>
+        </dom-repeat>
+      </div>
+
+      <dom-if if="[[editItemEnabled]]">
+        <template>
+          Write the new value: <input id="new_name" type="text">
+          <button on-click="saveUpdatedElement">Save</button>
+        </template>
+      </dom-if>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `playlist-list-item` Item of the list
+     *
+     * @summary Generic item for list.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class PlaylistListitem extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return "playlist-list-item";
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {
+          itemInfo: Array,
+          itemIndex: Number,
+          itemClass: String,
+          editItemEnabled: Boolean
+        };
+      }
+
+      /**
+       * Use for one-time configuration of your component after local DOM is
+       * initialized.
+       */
+      ready() {
+        super.ready();
+        const checkbox = this.shadowRoot.querySelector('#checkbox')
+        checkbox.addEventListener('change', (e) => {
+          this.shadowRoot.querySelector('#name').classList.toggle('strikethrough')
+        })
+      }
+
+      validateStrikethrough(checked) {
+        return checked ? 'strikethrough' : ''
+      }
+
+      validateAction(e) {
+        let elementAction = e.model.__data.item.toLowerCase()
+        elementAction === 'edit' ? this.initEditProcess() : this.initDeleteProcess()
+      }
+
+      initEditProcess() {
+        this.set('editItemEnabled', true)
+      }
+
+      initDeleteProcess() {
+        this.dispatchEvent(new CustomEvent(`item-delete-submited`, {
+          detail: {
+            newName: '',
+            index: this.itemIndex - 1 
+          },
+          bubbles: true,
+          composed: true
+        }));
+      }
+
+      saveUpdatedElement() {
+        let newName = this.shadowRoot.querySelector('#new_name').value
+        this.set('itemInfo.name', newName)
+        this.shadowRoot.querySelector('#new_name').value = ''
+        this.set('editItemEnabled', false)
+      }
+    }
+
+    window.customElements.define(PlaylistListitem.is, PlaylistListitem);
+  </script>
+</dom-module>

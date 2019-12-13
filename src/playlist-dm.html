@@ -1,0 +1,90 @@
+<dom-module id="playlist-dm">
+  <script>
+    /**
+     * `playlist-dm` Data manager for playlist
+     *
+     * @summary Orquestor of data.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class PlaylistDm extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return "playlist-dm";
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {};
+      }
+
+      /**
+       * Use for one-time configuration of your component after local DOM is
+       * initialized.
+       */
+      ready() {
+        super.ready();
+        this.addEventListener("list-filled", data => {
+          this.parseList(data.detail);
+        });
+        this.getApiData();
+      }
+
+      async getApiData() {
+        try {
+          const response = await fetch("http://localhost:1984/api/load");
+          const list = await response.json();
+          this.parseList(list);
+        } catch (err) {
+          console.error("fetch failed", err);
+        }
+      }
+
+      parseList(payload) {
+        let customItem;
+        let parsedList = payload.items.map(item => {
+          customItem = {};
+          customItem.name = item.name;
+          customItem.actions = ["Edit", "Delete"];
+          customItem.checked = item.checked;
+          return customItem;
+        });
+
+        this.dispatchEvent(
+          new CustomEvent("list-parsed", {
+            detail: parsedList,
+            bubbles: true,
+            composed: true
+          })
+        );
+      }
+
+      requestSaveDataOnApi(data) {
+        const url = "http://localhost:1984/api/save";
+        fetch(url, {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+          .then(res => res.json())
+          .catch(error => console.error("Error:", error))
+          .then(response => {            
+            this.dispatchEvent(new CustomEvent('data-saved', {
+              detail: response,
+              bubbles: true,
+              composed: true
+            }));
+          });
+      }
+    }
+
+    window.customElements.define(PlaylistDm.is, PlaylistDm);
+  </script>
+</dom-module>

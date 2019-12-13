@@ -1,0 +1,147 @@
+<dom-module id="playlist-list">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+
+      .input-section {
+        padding: 20px;
+      }
+    </style>
+
+    <div>
+      <ul>
+        <dom-repeat items="[[myList]]" id="list_repeater">
+          <template>
+            <li>
+              <playlist-list-item
+                id="list_element"
+                item-index="[[beautifyIndex(index)]]"
+                item-info="[[item]]"
+                item-class="[[validateEvenOdd(index)]]">
+              </playlist-list-item>
+            </li>
+          </template>
+        </dom-repeat>
+
+        <dom-if if="[[enableAddElementInput]]">
+          <template>
+            <div class="input-section">
+              Type the new item name: <input type="text" id="new_item">
+              <button on-click="addNewItem">Add</button>
+    
+              <dom-if if="[[emptyListForAdd]]">
+                <template>
+                  <h2>Pending to add:</h2>
+                  <ul>
+                    <dom-repeat items="[[pendingToAdd.items]]" id="pending_repeater">
+                      <template>
+                        <li>[[item.name]]</li>
+                      </template>
+                    </dom-repeat>
+                  </ul>
+                </template>
+              </dom-if>
+            </div>
+          </template>
+        </dom-if>
+      </ul>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `playlist-list` Generic list
+     *
+     * @summary List for items.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class PlaylistList extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return "playlist-list";
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {
+          myList: {
+            type: Array,
+            value: () => [
+              { name: 'Skeleton element', actions: [ 'Edit', 'Delete'], checked: true },
+              { name: 'Skeleton element', actions: [ 'Edit', 'Delete'], checked: false },
+              { name: 'Skeleton element', actions: [ 'Edit', 'Delete'], checked: true },
+              { name: 'Skeleton element', actions: [ 'Edit', 'Delete'], checked: false },
+            ]
+          },
+
+          enableAddElementInput: Boolean,
+          emptyListForAdd: Boolean,
+          pendingToAdd: {
+            type: Object,
+            value: {
+              items: []
+            }
+          }
+        };
+      }
+
+      /**
+       * Use for one-time configuration of your component after local DOM is
+       * initialized.
+       */
+      ready() {
+        super.ready();
+        this.addEventListener('item-edit-submited', (itemData) => this.updateElementActions(itemData.detail))
+        this.addEventListener('item-delete-submited', (itemData) => this.deleteElementActions(itemData.detail))
+      }
+
+      readData(data) {
+        this.set('myList', data.detail)
+      }
+
+      validateEvenOdd(index) {
+        return index % 2 == 0 ? 'even' : 'odd'
+      }
+
+      beautifyIndex(index) {
+        return index + 1
+      }
+
+      deleteElementActions(payload) {
+        this.myList.splice(payload.index, 1)
+        this.shadowRoot.querySelector('#list_repeater').render()
+      }
+
+      addNewItem() {
+        this.set('emptyListForAdd', true)
+        const newItemName = this.shadowRoot.querySelector('#new_item').value
+        const newItemModel = {
+          name: newItemName,
+          actions: [ 'Edit', 'Delete'],
+          checked: false
+        }
+        this.pendingToAdd.items.push(newItemModel)
+        this.shadowRoot.querySelector('#pending_repeater').render()
+        this.shadowRoot.querySelector('#new_item').value = ''
+      }
+
+      renderSavedItems(data) {
+        this.set('pendingToAdd.items', [])
+        this.shadowRoot.querySelector('#new_item').value = ''
+        this.set('myList', this.myList.concat(data.items))
+        this.shadowRoot.querySelector('#list_repeater').render()
+        this.set('enableAddElementInput', false)
+      }
+    }
+
+    window.customElements.define(PlaylistList.is, PlaylistList);
+  </script>
+</dom-module>
